@@ -8,9 +8,12 @@ import {
 } from "../types"; // Asegúrate de tener los tipos
 import GetProductionsOrders from "@/api/production-orders/get-productions-orders";
 import CreateProduction from "@/api/productions/create-production";
+import Swal from "sweetalert2";
+import { useRouter } from "next/navigation";
 // API para obtener y actualizar órdenes de producción
 
 export default function ProductionOrderList() {
+  const router = useRouter();
   const [orders, setOrders] = useState<ProductionOrder[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<ProductionOrder | null>(
     null
@@ -56,14 +59,21 @@ export default function ProductionOrderList() {
       };
 
       try {
-        await CreateProduction(productionData); // Llamar a la API para finalizar la producción
-        alert("Orden de producción finalizada con éxito");
-        // Actualizar la lista de órdenes después de la finalización
-        setOrders(orders.filter((order) => order.id !== selectedOrder.id)); // Eliminar la orden finalizada
-        setSelectedOrder(null);
+        const response = await CreateProduction(productionData);
+        Swal.fire({
+          title: "Producto creado",
+          text: `El producto ${response.name} ha sido creado correctamente.`,
+          icon: "success",
+          confirmButtonText: "Aceptar",
+        });
+        router.push("/productions/list");
       } catch (error) {
-        console.error("Error al finalizar la orden de producción", error);
-        alert("Hubo un error al finalizar la orden");
+        Swal.fire({
+          title: "Error",
+          text: `Hubo un problema al crear la fórmula. Por favor, intenta nuevamente. ${error}`,
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
       }
     }
   };

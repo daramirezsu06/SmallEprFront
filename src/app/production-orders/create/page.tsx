@@ -4,6 +4,10 @@ import { Table } from "../../components/Table/tableContainer";
 import { FormulationColumns } from "@/utils/TableColumns/formulations";
 import GetFormulations from "@/api/formulations/get-formulations";
 import CreateProductionOrder from "@/api/production-orders/create-production-orders"; // Servicio para crear la orden de producción
+import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
+import { generateProductionOrderPDF } from "@/utils/pdfs/productionOrderPdf";
+
 
 interface Formulation {
   id: number;
@@ -14,6 +18,7 @@ interface Formulation {
 }
 
 export default function FormulationList() {
+  const router = useRouter();
   const [formulations, setFormulations] = useState<Formulation[]>([]);
   const [selectedFormulation, setSelectedFormulation] =
     useState<Formulation | null>(null);
@@ -36,13 +41,24 @@ export default function FormulationList() {
           formulationId: selectedFormulation.id,
           quantity,
         };
-        await CreateProductionOrder(orderData);
-        alert("Orden de producción creada con éxito");
-        setQuantity(0); // Limpiar el campo de cantidad
-        setSelectedFormulation(null); // Limpiar la formulación seleccionada
+        const response = await CreateProductionOrder(orderData);
+        Swal.fire({
+          title: "Producto creado",
+          text: `El producto ${response.name} ha sido creado correctamente.`,
+          icon: "success",
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          generateProductionOrderPDF(response);
+        });
+
+        router.push("/production-orders/list");
       } catch (error) {
-        console.error("Error al crear orden de producción", error);
-        alert("Hubo un error al crear la orden de producción");
+        Swal.fire({
+          title: "Error",
+          text: `Hubo un problema al crear la fórmula. Por favor, intenta nuevamente. ${error}`,
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
       }
     } else {
       alert("Por favor, selecciona una formulación y una cantidad válida.");

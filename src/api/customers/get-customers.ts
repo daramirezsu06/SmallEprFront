@@ -1,8 +1,9 @@
+
 import { axiosApi } from "../api";
 
-const GetProducts = async (typeId: number) => {
+const GetCustomers = async () => {
   try {
-    const { data } = await axiosApi.get(`/products?typeId=${typeId}`);
+    const { data } = await axiosApi.get("/customer");
     return data;
   } catch (error: any) {
     // Si el error es de Axios, manejar con error.response, de lo contrario, usar el mensaje genérico
@@ -11,4 +12,4 @@ const GetProducts = async (typeId: number) => {
     throw new Error(message); // Usar `new Error` para seguir las buenas prácticas
   }
 };
-export default GetProducts;
+export default GetCustomers;

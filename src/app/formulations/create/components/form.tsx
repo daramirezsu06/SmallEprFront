@@ -3,8 +3,11 @@ import { useState } from "react";
 import CreateFormulations from "@/api/formulations/create-formulation";
 import SelectInput from "@/app/products/create/components/selectInput";
 import { Product } from "@/api/products/product.type";
+import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 
 const FormulationForm = ({ products }: { products: Product[] }) => {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -71,13 +74,21 @@ const FormulationForm = ({ products }: { products: Product[] }) => {
     e.preventDefault();
 
     try {
-      // Llamar a CreateFormulation pasando los datos del formulario
       const response = await CreateFormulations({ formulationsData: formData });
-      console.log("Fórmula creada con éxito:", response);
-      // Aquí puedes manejar la respuesta, redirigir, o mostrar un mensaje de éxito.
-    } catch (error: any) {
-      console.error("Error al crear fórmula:", error.message);
-      // Aquí puedes manejar el error, como mostrar un mensaje al usuario.
+      Swal.fire({
+        title: "Fórmula creada",
+        text: `La fórmula ${response.name} ha sido creada correctamente.`,
+        icon: "success",
+        confirmButtonText: "Aceptar",
+      });
+      router.push("/formulations/list");
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: `Hubo un problema al crear la fórmula. Por favor, intenta nuevamente. ${error}`,
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     }
   };
 

@@ -2,6 +2,8 @@
 import { useState } from "react";
 import SelectInput from "./selectInput"; // Asegúrate de importar el componente SelectInput
 import CreateProducts from "@/api/products/create-product";
+import Swal from "sweetalert2";
+import { useRouter } from "next/navigation";
 
 type ProductFormProps = {
   units: { id: number; name: string }[];
@@ -13,6 +15,7 @@ type ProductFormProps = {
 };
 
 const ProductForm = ({ units, productTypes }: ProductFormProps) => {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -50,13 +53,21 @@ const ProductForm = ({ units, productTypes }: ProductFormProps) => {
     };
 
     try {
-      // Llamamos a CreateProducts pasando los datos del formulario
       const response = await CreateProducts(dataToSend);
-      console.log("Producto creado con éxito:", response);
-      // Aquí podrías hacer algo más, como redirigir o mostrar un mensaje de éxito
-    } catch (error: any) {
-      console.error("Error al crear producto:", error.message);
-      // Aquí podrías mostrar un mensaje de error al usuario si algo sale mal
+      Swal.fire({
+        title: "Producto creado",
+        text: `El producto ${response.name} ha sido creado correctamente.`,
+        icon: "success",
+        confirmButtonText: "Aceptar",
+      });
+      router.push("/products/list");
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: `Hubo un problema al crear la fórmula. Por favor, intenta nuevamente. ${error}`,
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     }
   };
 
