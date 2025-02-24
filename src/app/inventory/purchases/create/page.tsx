@@ -1,149 +1,183 @@
 "use client";
 import GetProducts from "@/api/products/get-products";
 import GetTypeOfProducts from "@/api/products/type-of-products/get-types-of-products";
+import CreatePurchase from "@/api/purchases/create-purchase";
 import GetSuppliers from "@/api/purchases/get-Suppliers";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 
-type ItemsList = {
+// Tipado más estricto
+interface Supplier {
+  id: number;
+  name: string;
+}
+
+interface Product {
+  id: number;
+  name: string;
+}
+
+interface TypeOfProduct {
+  id: number;
+  name: string;
+}
+
+interface Item {
   productId: number;
+  productName: string; // Guardamos el nombre para evitar búsquedas
   quantity: number;
   cost: number;
   movementTypeId: number;
-};
+}
 
 const PurchasesForm = () => {
   const router = useRouter();
   const [supplierId, setSupplierId] = useState<number | null>(null);
   const [factura, setFactura] = useState<string>("");
-  const [dateBuy, setDateBuy] = useState<string>(new Date().toISOString());
-  const [formData, setFormData] = useState<ItemsList[]>([]);
-  const [suppliers, setSuppliers] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
-  const [TypeOfProducts, setTypeOfProducts] = useState<any[]>([]);
+  const [dateBuy, setDateBuy] = useState<string>(
+    new Date().toISOString().split("T")[0] // Formato YYYY-MM-DD
+  );
+  const [formData, setFormData] = useState<Item[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [typeOfProducts, setTypeOfProducts] = useState<TypeOfProduct[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [cost, setCost] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const fetchSuppliers = async () => {
+  // Fetch data
+  const fetchData = async () => {
+    setLoading(true);
     try {
-      const data = await GetSuppliers();
-      setSuppliers(data);
+      const [suppliersData, productsData, typesData] = await Promise.all([
+        GetSuppliers(),
+        GetProducts(1),
+        GetTypeOfProducts(),
+      ]);
+      setSuppliers(suppliersData);
+      setProducts(productsData);
+      setTypeOfProducts(typesData);
     } catch (error) {
-      console.error("Error al obtener proveedores", error);
-    }
-  };
-
-  const fetchProducts = async (typeId = 1) => {
-    try {
-      const data = await GetProducts(typeId);
-      setProducts(data);
-    } catch (error) {
-      console.error("Error al obtener productos", error);
-    }
-  };
-
-  const fetchTypeOfProducts = async () => {
-    try {
-      const data = await GetTypeOfProducts();
-      setTypeOfProducts(data);
-    } catch (error) {
-      console.error("Error al obtener tipos de productos", error);
+      setError("Error al cargar los datos iniciales.");
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchSuppliers();
-    fetchProducts();
-    fetchTypeOfProducts();
+    fetchData();
   }, []);
 
-  const handleTypeChange = (e: any) => {
-    fetchProducts(e.target.value);
-  };
-
-  const handleSupplierChange = (e: any) => {
-    setSupplierId(Number(e.target.value));
-  };
-
-  const handleDateChange = (e: any) => {
-    setDateBuy(new Date(e.target.value).toISOString());
-  };
-
-  const handleFacturaChange = (e: any) => {
-    setFactura(e.target.value);
+  const handleTypeChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const typeId = Number(e.target.value);
+    setLoading(true);
+    try {
+      const data = await GetProducts(typeId);
+      setProducts(data);
+    } catch (error) {
+      setError("Error al cargar productos.");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddProduct = () => {
     if (selectedProduct && quantity > 0 && cost > 0) {
-      setFormData([
-        ...formData,
-        {
-          productId: selectedProduct,
-          quantity,
-          cost,
-          movementTypeId: 2, // Asumo que siempre es 2, puedes cambiarlo si es dinámico
-        },
-      ]);
-      setSelectedProduct(null);
-      setQuantity(1);
-      setCost(0);
+      const product = products.find((p) => p.id === selectedProduct);
+      if (product) {
+        setFormData([
+          ...formData,
+          {
+            productId: selectedProduct,
+            productName: product.name,
+            quantity,
+            cost,
+            movementTypeId: 2,
+          },
+        ]);
+        setSelectedProduct(null);
+        setQuantity(1);
+        setCost(0);
+      }
     }
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleRemoveProduct = (index: number) => {
+    setFormData(formData.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!supplierId || !factura || formData.length === 0) {
-      alert("Todos los campos son obligatorios.");
+      setError("Todos los campos son obligatorios.");
       return;
     }
 
+    setLoading(true);
+    setError(null);
     const purchaseData = {
       supplierId,
       Factura: Number(factura),
       data: dateBuy,
-      CreateInventoryMovementsDto: formData,
+      CreateInventoryMovementsDto: formData.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        cost: item.cost,
+        movementTypeId: 2,
+      })),
     };
 
     try {
-      const response = await fetch("/api/purchases", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(purchaseData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Error al registrar la compra");
-      }
-
-      const result = await response.json();
-      console.log("Compra registrada:", result);
-      alert("Compra registrada exitosamente.");
-      router.push("/purchases"); // Redirigir a la lista de compras o actualizar el estado
+      const response = await CreatePurchase(purchaseData);
+      Swal.fire({
+        title: "Compra creada",
+        text: `La compra de la factura ${response.Factura} a sido ingresada con el  número de referencia ${response.id}.`,
+        icon: "success",
+        confirmButtonText: "Aceptar",
+      }).then(() => {
+        router.push("./inventory/inventory-movements");
+      })
     } catch (error) {
-      console.error("Error al enviar la compra:", error);
-      alert("Hubo un error al registrar la compra.");
+      Swal.fire({
+        title: "Error",
+        text: `Hubo un error al crear la compra. Por favor, intenta nuevamente. ${error}`,
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
-      <h1 className="text-2xl font-bold text-center text-gray-800">
+      <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
         Formulario de Compra
       </h1>
 
-      <form className="space-y-6 mt-6" onSubmit={handleSubmit}>
-        {/* Selección de proveedor */}
-        <div className="border border-gray-200 pt-4 flex gap-2 flex-wrap justify-center">
-          <div className="flex flex-col w-1/3">
-            <label className="text-lg font-medium text-gray-600">
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+          {error}
+        </div>
+      )}
+
+      {loading && <p className="text-center text-gray-600">Cargando...</p>}
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Sección de encabezado */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border border-gray-200 p-4 rounded-lg">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
               Proveedor
             </label>
             <select
-              className="mt-2 p-3 border rounded-lg bg-gray-50"
-              onChange={handleSupplierChange}
+              className="mt-1 p-2 w-full border rounded-lg bg-gray-50"
+              onChange={(e) => setSupplierId(Number(e.target.value))}
               required>
               <option value="">Seleccione un proveedor</option>
               {suppliers.map((supplier) => (
@@ -153,58 +187,57 @@ const PurchasesForm = () => {
               ))}
             </select>
           </div>
-
-          <div className="flex flex-col w-1/3">
-            <label className="text-lg font-medium text-gray-600">Fecha</label>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Fecha
+            </label>
             <input
               type="date"
-              onChange={handleDateChange}
-              className="mt-2 p-3 border rounded-lg bg-gray-50"
+              value={dateBuy}
+              onChange={(e) => setDateBuy(e.target.value)}
+              className="mt-1 p-2 w-full border rounded-lg bg-gray-50"
               required
             />
           </div>
-
-          <div className="flex flex-col w-1/3">
-            <label className="text-lg font-medium text-gray-600">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
               Número de Factura
             </label>
             <input
               type="number"
               value={factura}
-              onChange={handleFacturaChange}
-              className="mt-2 p-3 border rounded-lg bg-gray-50"
+              onChange={(e) => setFactura(e.target.value)}
+              className="mt-1 p-2 w-full border rounded-lg bg-gray-50"
               required
             />
           </div>
         </div>
 
-        {/* Selección de Producto */}
-        <div className="border border-gray-200 pt-4 flex gap-2 flex-wrap justify-center">
-          <div className="flex flex-col w-1/3">
-            <label className="text-lg font-medium text-gray-600">
+        {/* Sección de ítems */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 border border-gray-200 p-4 rounded-lg">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
               Tipo de Producto
             </label>
             <select
-              className="mt-2 p-3 border rounded-lg bg-gray-50"
-              onChange={handleTypeChange}
-              required>
+              className="mt-1 p-2 w-full border rounded-lg bg-gray-50"
+              onChange={handleTypeChange}>
               <option value="">Seleccione un tipo</option>
-              {TypeOfProducts.map((type) => (
+              {typeOfProducts.map((type) => (
                 <option key={type.id} value={type.id}>
                   {type.name}
                 </option>
               ))}
             </select>
           </div>
-
-          <div className="flex flex-col w-1/3">
-            <label className="text-lg font-medium text-gray-600">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
               Producto
             </label>
             <select
-              className="mt-2 p-3 border rounded-lg bg-gray-50"
+              className="mt-1 p-2 w-full border rounded-lg bg-gray-50"
               onChange={(e) => setSelectedProduct(Number(e.target.value))}
-              required>
+              value={selectedProduct || ""}>
               <option value="">Seleccione un producto</option>
               {products.map((prod) => (
                 <option key={prod.id} value={prod.id}>
@@ -213,9 +246,8 @@ const PurchasesForm = () => {
               ))}
             </select>
           </div>
-
-          <div className="flex flex-col w-1/3">
-            <label className="text-lg font-medium text-gray-600">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
               Cantidad
             </label>
             <input
@@ -223,38 +255,75 @@ const PurchasesForm = () => {
               value={quantity}
               onChange={(e) => setQuantity(Number(e.target.value))}
               min="1"
-              className="mt-2 p-3 border rounded-lg bg-gray-50"
-              required
+              className="mt-1 p-2 w-full border rounded-lg bg-gray-50"
             />
           </div>
-
-          <div className="flex flex-col w-1/3">
-            <label className="text-lg font-medium text-gray-600">Costo</label>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Costo
+            </label>
             <input
               type="number"
               value={cost}
               onChange={(e) => setCost(Number(e.target.value))}
               min="0"
-              className="mt-2 p-3 border rounded-lg bg-gray-50"
-              required
+              className="mt-1 p-2 w-full border rounded-lg bg-gray-50"
             />
           </div>
         </div>
-        <div className="flex justify-center gap-2">
+
+        {/* Lista de ítems */}
+        {formData.length > 0 && (
+          <div className="border border-gray-200 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">
+              Ítems Agregados
+            </h3>
+            <div className="space-y-2">
+              {formData.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                  <div>
+                    <p>
+                      <strong>Producto:</strong> {item.productName}
+                    </p>
+                    <p>
+                      <strong>Cantidad:</strong> {item.quantity}
+                    </p>
+                    <p>
+                      <strong>Costo:</strong> ${item.cost}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveProduct(index)}
+                    className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                    Eliminar
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Botones */}
+        <div className="flex justify-center gap-4">
           <button
             type="button"
             onClick={handleAddProduct}
-            className="p-3 bg-green-500 text-white rounded-lg hover:bg-blue-600">
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
             Agregar Item
           </button>
           <button
             type="submit"
-            className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-            Enviar Compra
+            disabled={loading}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400">
+            {loading ? "Enviando..." : "Enviar Compra"}
           </button>
         </div>
       </form>
     </div>
   );
 };
+
 export default PurchasesForm;

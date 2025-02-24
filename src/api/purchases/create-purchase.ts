@@ -6,8 +6,8 @@ type purchaseItem = {
   cost: number;
 };
 type CreatePurchaseData = {
-  supplerId: number;
-  factura: number;
+  supplierId: number;
+  Factura: number;
   data: string;
   CreateInventoryMovementsDto: purchaseItem[];
 };

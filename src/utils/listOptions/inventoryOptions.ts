@@ -4,4 +4,5 @@ export const inventoryOptions = [
   { name: "ingresar compras", href: "./inventory/CreateCompra" },
   { name: "Crear Proveedor", href: "./inventory/supplier/create" },
   { name: "ver Proveedores", href: "./inventory/supplier/list" },
+  { name: "Compra a proveedor", href: "./inventory/purchases/create" },
 ];
