@@ -23,9 +23,9 @@ interface CreateCustomerDto {
   customerTypeId: number;
   sellerId?: number;
   priceListId?: number;
-  neighborhoodId?: number; // Nuevo campo para enviar al backend
 }
 
+// Suponiendo que estas funciones existen y devuelven listas
 interface Seller {
   id: number;
   name: string;
@@ -61,16 +61,13 @@ export default function CreateCustomerPage() {
     customerTypeId: 0,
   });
   const [location, setLocation] = useState<{ lat: number; lng: number }>({
-    lat: 6.2442, // Medellín por defecto
-    lng: -75.5812,
-  });
-  const [zoom, setZoom] = useState<number>(10); // Zoom inicial más amplio
+    lat: 4.60971,
+    lng: -74.08175,
+  }); // Bogotá por defecto
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [customerTypes, setCustomerTypes] = useState<CustomerType[]>([]);
   const [priceLists, setPriceLists] = useState<PriceList[]>([]);
   const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
-  const [selectedMunicipality, setSelectedMunicipality] = useState<number>(0); // ID del municipio seleccionado
-  const [selectedNeighborhood, setSelectedNeighborhood] = useState<number>(0); // ID del barrio seleccionado
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
@@ -78,12 +75,7 @@ export default function CreateCustomerPage() {
       router.push("/dashboard"); // Solo vendedores pueden crear clientes
     } else {
       // Cargar listas
-      Promise.all([
-        GetSellers(),
-        GetCustomersTypes(),
-        GetPriceList(),
-        GetMunicipalities(),
-      ])
+      Promise.all([GetSellers(), GetCustomersTypes(), GetPriceList(), GetMunicipalities()])
         .then(([sellersData, typesData, pricesData, municipalitiesData]) => {
           setSellers(sellersData);
           setCustomerTypes(typesData);
@@ -100,54 +92,21 @@ export default function CreateCustomerPage() {
     }
   }, [user, router]);
 
-  // Manejar cambio de municipio
-  const handleMunicipalityChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const municipalityId = Number(e.target.value);
-    setSelectedMunicipality(municipalityId);
-    setSelectedNeighborhood(0); // Reiniciar el barrio seleccionado
-    const selected = municipalities.find((m) => m.id === municipalityId);
-    if (selected) {
-      setLocation({ lat: selected.lat, lng: selected.lon });
-      setZoom(12); // Zoom intermedio para municipio
-    }
-  };
-
-  // Manejar cambio de barrio
-  const handleNeighborhoodChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const neighborhoodId = Number(e.target.value);
-    setSelectedNeighborhood(neighborhoodId);
-    setFormData((prev) => ({ ...prev, neighborhoodId })); // Agregar neighborhoodId a formData
-    const selectedMunicipalityData = municipalities.find(
-      (m) => m.id === selectedMunicipality
-    );
-    const selectedNeighborhoodData =
-      selectedMunicipalityData?.neighborhoods.find(
-        (n) => n.id === neighborhoodId
-      );
-    if (selectedNeighborhoodData) {
-      setLocation({
-        lat: selectedNeighborhoodData.lat,
-        lng: selectedNeighborhoodData.lon,
-      });
-      setZoom(15); // Zoom más cercano para barrio
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const dataToSend = {
+    console.log({
       ...formData,
       lat: location.lat,
       lon: location.lng,
       sellerId: user?.sellerId || formData.sellerId,
-      neighborhoodId: selectedNeighborhood || undefined, // Incluir neighborhoodId
-    };
-    console.log(dataToSend); // Para depuración
+    });
     try {
+      const dataToSend = {
+        ...formData,
+        lat: location.lat,
+        lon: location.lng,
+        sellerId: user?.sellerId || formData.sellerId, // Usa el ID del vendedor autenticado si aplica
+      };
       await CreateCustomer({ customerData: dataToSend });
       router.push("/customers"); // Redirige a la lista de clientes tras éxito
     } catch (err) {
@@ -284,11 +243,12 @@ export default function CreateCustomerPage() {
                 ))}
               </select>
             </div>
+            {/* // vendedor */}
             <div>
               <label
-                htmlFor="sellerId"
+                htmlFor="priceListId"
                 className="block text-sm font-medium text-gray-700">
-                Vendedor asignado (Opcional)
+                vendedor asignado (Opcional)
               </label>
               <select
                 id="sellerId"
@@ -300,62 +260,12 @@ export default function CreateCustomerPage() {
                   })
                 }
                 className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                <option value="">Sin vendedor</option>
-                {sellers.map((seller) => (
-                  <option key={seller.id} value={seller.id}>
-                    {seller.name}
+                <option value="">Sin lista</option>
+                {sellers.map((list) => (
+                  <option key={list.id} value={list.id}>
+                    {list.name}
                   </option>
                 ))}
-              </select>
-            </div>
-            {/* Desplegable de Municipio */}
-            <div>
-              <label
-                htmlFor="municipality"
-                className="block text-sm font-medium text-gray-700">
-                Municipio
-              </label>
-              <select
-                id="municipality"
-                value={selectedMunicipality}
-                onChange={handleMunicipalityChange}
-                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                required>
-                <option value={0} disabled>
-                  Selecciona un municipio
-                </option>
-                {municipalities.map((municipality) => (
-                  <option key={municipality.id} value={municipality.id}>
-                    {municipality.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {/* Desplegable de Barrio */}
-            <div>
-              <label
-                htmlFor="neighborhood"
-                className="block text-sm font-medium text-gray-700">
-                Barrio
-              </label>
-              <select
-                id="neighborhood"
-                value={selectedNeighborhood}
-                onChange={handleNeighborhoodChange}
-                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                disabled={!selectedMunicipality}
-                required>
-                <option value={0} disabled>
-                  Selecciona un barrio
-                </option>
-                {selectedMunicipality &&
-                  municipalities
-                    .find((m) => m.id === selectedMunicipality)
-                    ?.neighborhoods.map((neighborhood) => (
-                      <option key={neighborhood.id} value={neighborhood.id}>
-                        {neighborhood.name}
-                      </option>
-                    ))}
               </select>
             </div>
           </div>
@@ -363,14 +273,14 @@ export default function CreateCustomerPage() {
           {/* Mapa de Google */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Ubicación (haz clic en el mapa para ajustar)
+              Ubicación (haz clic en el mapa)
             </label>
             <LoadScript
               googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
               <GoogleMap
                 mapContainerStyle={{ height: "400px", width: "100%" }}
                 center={location}
-                zoom={zoom}
+                zoom={13}
                 onClick={handleMapClick}>
                 <Marker position={location} />
               </GoogleMap>
