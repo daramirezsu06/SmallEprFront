@@ -71,25 +71,26 @@ export default function CreateCustomerPage() {
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    if (user?.role !== "Vendedor") {
-      router.push("/dashboard"); // Solo vendedores pueden crear clientes
-    } else {
-      // Cargar listas
-      Promise.all([GetSellers(), GetCustomersTypes(), GetPriceList(), GetMunicipalities()])
-        .then(([sellersData, typesData, pricesData, municipalitiesData]) => {
-          setSellers(sellersData);
-          setCustomerTypes(typesData);
-          setPriceLists(pricesData);
-          setMunicipalities(municipalitiesData);
-          // Preseleccionar el vendedor actual si está en la lista
-          if (user)
-            setFormData((prev) => ({
-              ...prev,
-              sellerId: user.sellerId || sellersData[0]?.id,
-            }));
-        })
-        .catch(() => setError("Error al cargar datos"));
-    }
+    // Cargar listas
+    Promise.all([
+      GetSellers(),
+      GetCustomersTypes(),
+      GetPriceList(),
+      GetMunicipalities(),
+    ])
+      .then(([sellersData, typesData, pricesData, municipalitiesData]) => {
+        setSellers(sellersData);
+        setCustomerTypes(typesData);
+        setPriceLists(pricesData);
+        setMunicipalities(municipalitiesData);
+        // Preseleccionar el vendedor actual si está en la lista
+        if (user)
+          setFormData((prev) => ({
+            ...prev,
+            sellerId: user.sellerId || sellersData[0]?.id,
+          }));
+      })
+      .catch(() => setError("Error al cargar datos"));
   }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {

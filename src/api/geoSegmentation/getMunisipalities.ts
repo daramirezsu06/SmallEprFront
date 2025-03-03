@@ -11,4 +11,5 @@ const GetMunicipalities = async () => {
   }
 };
 
+
 export default GetMunicipalities;

@@ -11,6 +11,8 @@ import GetPriceList from "@/api/customers/get_PriceList";
 import GetCustomersTypes from "@/api/customers/get_customerType";
 import CreateCustomer from "@/api/customers/CreateCustomer";
 import GetMunicipalities from "@/api/geoSegmentation/getMunisipalities";
+import Link from "next/link";
+import Swal from "sweetalert2";
 
 // Tipos basados en tu DTO
 interface CreateCustomerDto {
@@ -74,30 +76,26 @@ export default function CreateCustomerPage() {
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    if (user?.role !== "Vendedor") {
-      router.push("/dashboard"); // Solo vendedores pueden crear clientes
-    } else {
-      // Cargar listas
-      Promise.all([
-        GetSellers(),
-        GetCustomersTypes(),
-        GetPriceList(),
-        GetMunicipalities(),
-      ])
-        .then(([sellersData, typesData, pricesData, municipalitiesData]) => {
-          setSellers(sellersData);
-          setCustomerTypes(typesData);
-          setPriceLists(pricesData);
-          setMunicipalities(municipalitiesData);
-          // Preseleccionar el vendedor actual si está en la lista
-          if (user)
-            setFormData((prev) => ({
-              ...prev,
-              sellerId: user.sellerId || sellersData[0]?.id,
-            }));
-        })
-        .catch(() => setError("Error al cargar datos"));
-    }
+    // Cargar listas
+    Promise.all([
+      GetSellers(),
+      GetCustomersTypes(),
+      GetPriceList(),
+      GetMunicipalities(),
+    ])
+      .then(([sellersData, typesData, pricesData, municipalitiesData]) => {
+        setSellers(sellersData);
+        setCustomerTypes(typesData);
+        setPriceLists(pricesData);
+        setMunicipalities(municipalitiesData);
+        // Preseleccionar el vendedor actual si está en la lista
+        if (user)
+          setFormData((prev) => ({
+            ...prev,
+            sellerId: user.sellerId || sellersData[0]?.id,
+          }));
+      })
+      .catch(() => setError("Error al cargar datos"));
   }, [user, router]);
 
   // Manejar cambio de municipio
@@ -148,8 +146,13 @@ export default function CreateCustomerPage() {
     };
     console.log(dataToSend); // Para depuración
     try {
-      await CreateCustomer({ customerData: dataToSend });
-      router.push("/customers"); // Redirige a la lista de clientes tras éxito
+      const response = await CreateCustomer({ customerData: dataToSend });
+      Swal.fire({
+        title: "Cliente creado",
+        text: `El cliente ${dataToSend.name} ha sido creado con éxito con el id ${response.id}`,
+        icon: "success",
+        confirmButtonText: "Aceptar",
+      }).then(() => router.push("/customers"));
     } catch (err) {
       setError("Error al crear el cliente");
     }
@@ -313,7 +316,12 @@ export default function CreateCustomerPage() {
               <label
                 htmlFor="municipality"
                 className="block text-sm font-medium text-gray-700">
-                Municipio
+                Municipio{" "}
+                <Link
+                  href="/geosegmentation/create"
+                  className=" bg-lime-500 text-red-600 p-1 rounded-md shadow-lg">
+                  Crear
+                </Link>
               </label>
               <select
                 id="municipality"
@@ -336,7 +344,12 @@ export default function CreateCustomerPage() {
               <label
                 htmlFor="neighborhood"
                 className="block text-sm font-medium text-gray-700">
-                Barrio
+                Barrio{" "}
+                <Link
+                  href="/geosegmentation/create"
+                  className=" bg-lime-500 text-red-600 p-1 rounded-md shadow-lg">
+                  Crear
+                </Link>
               </label>
               <select
                 id="neighborhood"
