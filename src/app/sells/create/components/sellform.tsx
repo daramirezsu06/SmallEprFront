@@ -29,7 +29,6 @@ const SellForm = () => {
 
   // Función para obtener los clientes desde la API
   const getCustomers = async () => {
-    
     setLoading(true);
     try {
       const responseCustomers = await GetCustomers();
@@ -76,7 +75,7 @@ const SellForm = () => {
 
   const handleAddProduct = () => {
     if (productId && price) {
-      setItemsList([...temsList, { productId, quantity, price }]);
+      setItemsList([...temsList, { productId, quantity, price: +price }]);
       setProductId(null);
       setQuantity(1);
       setPrice(null);
@@ -94,14 +93,16 @@ const SellForm = () => {
 
       try {
         const sellResponse = await CreateSell(saleData);
+        console.log("sellResponse", sellResponse);
         Swal.fire({
           title: "¡Listo!",
-          text: "Se ha enviado la con id " + sellResponse.data.id,
+          text: "Se ha enviado la con id " + sellResponse.id,
           icon: "success",
           confirmButtonText: "Aceptar",
         });
         router.push("/sells/list");
       } catch (error) {
+        console.log(error);
         Swal.fire({
           title: "¡Error!",
           text: "No se ha podido enviar la venta por error " + error,
@@ -186,7 +187,6 @@ const SellForm = () => {
             id="price"
             value={price || ""}
             onChange={(e) => setPrice(Number(e.target.value))}
-            readOnly
             className="mt-2 p-3 border rounded-lg bg-gray-50"
           />
         </div>
