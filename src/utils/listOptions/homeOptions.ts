@@ -6,10 +6,12 @@ export const homeOptions = {
     { name: "Ordenes de Producción", href: "/production-orders" },
     { name: "Producciones", href: "/productions" },
     { name: "Ventas", href: "/sells" },
-    { name: "Clientes", href: "/customers" }
+    { name: "Clientes", href: "/customers" },
+    { name:"geo-segmentación", href: "/geosegmentation/create" }
   ],
   Vendedor: [
     { name: "Ventas", href: "/sells" },
     { name: "Clientes", href: "/customers" },
+    { name:"geo-segmentación", href: "/geosegmentation/create" }
   ],
 };
