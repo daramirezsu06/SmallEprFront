@@ -14,17 +14,27 @@ export interface ProductionOrderItem {
   };
 }
 
+// export interface ProductionOrder {
+//   id: number;
+//   quantity: string; // La cantidad resultante de la producción
+//   pending: boolean;
+//   createDate: string;
+//   product: {
+//     id: number;
+//     name: string;
+//     description: string;
+//   };
+//   productionOrderItems: ProductionOrderItem[];
+// }
+
 export interface ProductionOrder {
   id: number;
-  quantity: string; // La cantidad resultante de la producción
-  pending: boolean;
+  product: { name: string };
+  quantity: number | string; // Puede ser string porque usas +row.quantity
   createDate: string;
-  product: {
-    id: number;
-    name: string;
-    description: string;
-  };
+  formulations: { name: string };
   productionOrderItems: ProductionOrderItem[];
+  pending?: boolean; // Opcional, inferido del filtro
 }
 
 export interface CreateProductionDto {

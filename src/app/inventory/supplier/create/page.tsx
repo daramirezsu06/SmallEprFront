@@ -49,10 +49,10 @@ const SupplierForm = () => {
       });
       router.push("/inventory/supplier/list");
     } catch (error) {
-      // Si hay algún error en la creación, mostrar alerta de error
+     
       Swal.fire({
         title: "Error",
-        text: "Hubo un problema al crear el proveedor. Por favor, intenta nuevamente.",
+        text: "Hubo un problema al crear el proveedor. Por favor, intenta nuevamente." + error,
         icon: "error",
         confirmButtonText: "Aceptar",
       });

@@ -60,6 +60,7 @@ const ProductForm = ({ units, productTypes }: ProductFormProps) => {
         icon: "success",
         confirmButtonText: "Aceptar",
       });
+      router.refresh();
       router.push("/products/list");
     } catch (error) {
       Swal.fire({

@@ -17,14 +17,17 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export type userRole = "Administrador" | "Vendedor";
+
 
 // Componente de Sidebar
 const Sidebar = () => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const options = homeOptions[user?.role || "Vendedor"] || [];
+  const options = homeOptions[user?.role as userRole || "Vendedor"] || [];
 
   return (
+
     <>
       {/* Botón hamburguesa para móviles */}
       <button

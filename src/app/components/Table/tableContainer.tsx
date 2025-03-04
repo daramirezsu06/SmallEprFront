@@ -1,7 +1,9 @@
-// Definir un tipo genérico para el selector, que puede ser una cadena o una función de acceso.
 type TableProps<T> = {
   data: T[];
-  columns: { name: string; selector: keyof T | ((row: T) => string) }[]; // Cambiar selector para que pueda ser una función
+  columns: {
+    name: string;
+    selector: keyof T | ((row: T) => React.ReactNode); // Cambiamos string por React.ReactNode
+  }[];
 };
 
 export const Table = <T,>({ data, columns }: TableProps<T>) => {
@@ -24,7 +26,6 @@ export const Table = <T,>({ data, columns }: TableProps<T>) => {
             <tr key={rowIndex} className="border-b hover:bg-gray-50">
               {columns.map((column, colIndex) => (
                 <td key={colIndex} className="px-2 py-2 text-sm text-gray-900">
-                  {/* Usamos el selector, que ahora puede ser una función */}
                   {typeof column.selector === "function"
                     ? column.selector(row)
                     : String(row[column.selector] || "-")}
