@@ -21,7 +21,8 @@ jobs:
       - name: Deploy to VPS
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@158.69.62.201 "
-            cd /home/ubuntu/Gales/SmallEprFront
+            cd /home/ubuntu/Gales/SmallEprFront &&
             git pull origin main &&
+            sudo docker compose build --no-cache &&
             sudo docker compose up -d
           "
