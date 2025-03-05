@@ -26,7 +26,7 @@ export default function ProductionOrderList() {
     const fetchOrders = async () => {
       try {
         const data = await GetProductionsOrders();
-        setOrders(data.filter((order) => order.pending)); // Solo mostrar órdenes pendientes
+        setOrders(data.filter((order:any) => order.pending)); // Solo mostrar órdenes pendientes
       } catch (error) {
         console.error("Error al obtener órdenes de producción", error);
       }
@@ -78,7 +78,12 @@ export default function ProductionOrderList() {
     }
   };
 
-  const columns = [
+  const columns: {
+    name: string;
+    selector:
+      | keyof ProductionOrder
+      | ((row: ProductionOrder) => React.ReactNode);
+  }[] = [
     { name: "Id", selector: "id" },
     { name: "Producto", selector: (row: ProductionOrder) => row.product.name },
     { name: "Cantidad Original", selector: "quantity" },

@@ -16,7 +16,7 @@ interface CreateMunicipalityDto {
   lon: number;
 }
 
-interface CreateNeighborhoodDto {
+export interface CreateNeighborhoodDto {
   name: string;
   lat: number;
   lon: number;
@@ -166,7 +166,7 @@ export default function CreateGeoSegmentationPage() {
         }).then(() => router.push("/"));
       }
     } catch (err) {
-      setError("Error al crear la entidad geográfica");
+      setError("Error al crear la entidad geográfica" + err);
     }
   };
 

@@ -11,13 +11,13 @@ export default function Login() {
   const { login } = useAuth();
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await login(email, password);
       router.push("/"); // Redirige a donde quieras tras login
     } catch (err) {
-      setError("Credenciales inválidas");
+      setError("Credenciales inválidas"+err);
     }
   };
 

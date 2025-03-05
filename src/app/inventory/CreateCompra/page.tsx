@@ -3,9 +3,10 @@ import { useState, useEffect } from "react";
 
 import GetProducts from "@/api/products/get-products";
 import CreateInventorieMovements from "@/api/inventory/create-inventorie-movements copy";
+import Swal from "sweetalert2";
 
 export default function PurchaseForm() {
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [form, setForm] = useState({
     quantity: "",
     cost: "",
@@ -22,11 +23,13 @@ export default function PurchaseForm() {
     fetchProducts();
   }, []);
 
-  const handleChange = (e) => {
+ 
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     const dataToSend = {
       cost: +form.cost,
       quantity: +form.quantity,
@@ -36,7 +39,15 @@ export default function PurchaseForm() {
     e.preventDefault();
     try {
       const response = await CreateInventorieMovements(dataToSend);
-      alert("Compra registrada con éxito:");
+      Swal.fire({
+        title: "Compra registrada",
+        text: `La compra de ${form.quantity} unidades de ${
+          form.productId
+        } con costo ${form.cost} ha sido registrada con éxito con el id ${response.id}`,
+        icon: "success",
+        confirmButtonText: "Aceptar",
+      });
+      
     } catch (error: any) {
       console.error("Error al registrar compra:", error.message);
     }

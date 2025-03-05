@@ -1,16 +1,11 @@
+import { CreateNeighborhoodDto } from "@/app/geosegmentation/create/page";
 import { axiosApi } from "../api";
 
-type NeighborhoodData = {
-  name: string;
-  unicipalityId: string;
-  lat: number;
-  lon: number;
-};
 
 const CreateNeighborhood = async ({
   neighborhoodData,
 }: {
-  neighborhoodData: NeighborhoodData;
+  neighborhoodData: CreateNeighborhoodDto;
 }) => {
   try {
     const { data } = await axiosApi.post(

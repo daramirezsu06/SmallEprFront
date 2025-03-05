@@ -1,6 +1,6 @@
 import { axiosApi } from "../api";
 
-const GetProducts = async (typeId: number) => {
+const GetProducts = async (typeId?: number) => {
   try {
     const { data } = await axiosApi.get(`/products?typeId=${typeId}`);
     return data;

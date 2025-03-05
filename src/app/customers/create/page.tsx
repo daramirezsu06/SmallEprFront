@@ -89,11 +89,7 @@ export default function CreateCustomerPage() {
         setPriceLists(pricesData);
         setMunicipalities(municipalitiesData);
         // Preseleccionar el vendedor actual si está en la lista
-        if (user)
-          setFormData((prev) => ({
-            ...prev,
-            sellerId: user.sellerId || sellersData[0]?.id,
-          }));
+        
       })
       .catch(() => setError("Error al cargar datos"));
   }, [user, router]);
@@ -141,7 +137,7 @@ export default function CreateCustomerPage() {
       ...formData,
       lat: location.lat,
       lon: location.lng,
-      sellerId: user?.sellerId || formData.sellerId,
+      sellerId: 1,
       neighborhoodId: selectedNeighborhood || undefined, // Incluir neighborhoodId
     };
     console.log(dataToSend); // Para depuración
@@ -154,7 +150,7 @@ export default function CreateCustomerPage() {
         confirmButtonText: "Aceptar",
       }).then(() => router.push("/customers"));
     } catch (err) {
-      setError("Error al crear el cliente");
+      setError("Error al crear el cliente" + err);
     }
   };
 
