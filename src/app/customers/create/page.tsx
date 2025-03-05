@@ -131,6 +131,32 @@ export default function CreateCustomerPage() {
     }
   };
 
+  // manejar bonton de ubicacion actual
+
+    const handleGetCurrentLocation = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            setLocation({ lat, lng });
+            setZoom(15);
+          },
+          (err) => {
+            setError(
+              "No se pudo obtener la ubicación. Ajusta manualmente en el mapa."
+            );
+            console.error(err);
+          }
+        );
+      } else {
+        setError("La geolocalización no es compatible con este navegador.");
+      }
+    };
+  
+  
+  // manejar envio de formulario 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const dataToSend = {
@@ -374,16 +400,24 @@ export default function CreateCustomerPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Ubicación (haz clic en el mapa para ajustar)
             </label>
-            <LoadScript
-              googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
-              <GoogleMap
-                mapContainerStyle={{ height: "400px", width: "100%" }}
-                center={location}
-                zoom={zoom}
-                onClick={handleMapClick}>
-                <Marker position={location} />
-              </GoogleMap>
-            </LoadScript>
+            <>
+              <button
+                type="button"
+                onClick={handleGetCurrentLocation}
+                className="mb-4 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Usar mi ubicación actual
+              </button>
+              <LoadScript
+                googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+                <GoogleMap
+                  mapContainerStyle={{ height: "400px", width: "100%" }}
+                  center={location}
+                  zoom={zoom}
+                  onClick={handleMapClick}>
+                  <Marker position={location} />
+                </GoogleMap>
+              </LoadScript>
+            </>
           </div>
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
