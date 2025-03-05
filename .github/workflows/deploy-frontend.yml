@@ -23,5 +23,5 @@ jobs:
           ssh -o StrictHostKeyChecking=no ubuntu@158.69.62.201 "
             cd /home/ubuntu/Gales/SmallEprFront
             git pull origin main &&
-            sudo docker-compose up -d
+            sudo docker compose up -d
           "
