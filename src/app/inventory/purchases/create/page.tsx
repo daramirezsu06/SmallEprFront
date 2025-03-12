@@ -16,6 +16,9 @@ interface Supplier {
 interface Product {
   id: number;
   name: string;
+  unit: {
+    acronyms: string;
+  };
 }
 
 interface TypeOfProduct {
@@ -141,7 +144,7 @@ const PurchasesForm = () => {
         confirmButtonText: "Aceptar",
       }).then(() => {
         router.push("./inventory/inventory-movements");
-      })
+      });
     } catch (error) {
       Swal.fire({
         title: "Error",
@@ -234,17 +237,24 @@ const PurchasesForm = () => {
             <label className="block text-sm font-medium text-gray-700">
               Producto
             </label>
-            <select
-              className="mt-1 p-2 w-full border rounded-lg bg-gray-50"
-              onChange={(e) => setSelectedProduct(Number(e.target.value))}
-              value={selectedProduct || ""}>
-              <option value="">Seleccione un producto</option>
-              {products.map((prod) => (
-                <option key={prod.id} value={prod.id}>
-                  {prod.name}
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center gap-2">
+              <select
+                className="mt-1 p-2 w-full border rounded-lg bg-gray-50"
+                onChange={(e) => setSelectedProduct(Number(e.target.value))}
+                value={selectedProduct || ""}>
+                <option value="">Seleccione un producto</option>
+                {products.map((prod) => (
+                  <option key={prod.id} value={prod.id}>
+                    {prod.name}
+                  </option>
+                ))}
+              </select>
+              <p>
+                {"("}
+                {products.find((p) => p.id === selectedProduct)?.unit.acronyms}
+                {")"}
+              </p>
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">
