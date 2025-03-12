@@ -1,9 +1,10 @@
 import { axiosApi } from "../api";
 
 type purchaseItem = {
-  productId: number;
-  quantity: number;
-  cost: number;
+  productId: number | string;
+  quantity: number | string;
+  cost: number | string;
+  movementTypeId: number;
 };
 type CreatePurchaseData = {
   supplierId: number;
