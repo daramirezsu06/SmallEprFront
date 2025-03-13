@@ -21,7 +21,7 @@ interface Product {
   };
 }
 
-interface TypeOfProduct {
+export interface TypeOfProduct {
   id: number;
   name: string;
 }
@@ -29,8 +29,8 @@ interface TypeOfProduct {
 interface Item {
   productId: number;
   productName: string; // Guardamos el nombre para evitar búsquedas
-  quantity: number;
-  cost: number;
+  quantity: number | string;
+  cost: number | string;
   movementTypeId: number;
 }
 
@@ -46,8 +46,8 @@ const PurchasesForm = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [typeOfProducts, setTypeOfProducts] = useState<TypeOfProduct[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
-  const [quantity, setQuantity] = useState<number>(1);
-  const [cost, setCost] = useState<number>(0);
+  const [quantity, setQuantity] = useState<string | number>(1);
+  const [cost, setCost] = useState<string | number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -88,9 +88,29 @@ const PurchasesForm = () => {
       setLoading(false);
     }
   };
+  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Si el valor está vacío, lo dejamos como cadena vacía
+    if (value === "") {
+      setQuantity("");
+    } else {
+      // Convertimos a número solo si hay un valor válido
+      setQuantity(Number(value));
+    }
+  };
+  const handleCostChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Si el valor está vacío, lo dejamos como cadena vacía
+    if (value === "") {
+      setCost("");
+    } else {
+      // Convertimos a número solo si hay un valor válido
+      setCost(Number(value));
+    }
+  };
 
   const handleAddProduct = () => {
-    if (selectedProduct && quantity > 0 && cost > 0) {
+    if (selectedProduct && quantity !== "" && cost !== "") {
       const product = products.find((p) => p.id === selectedProduct);
       if (product) {
         setFormData([
@@ -137,13 +157,30 @@ const PurchasesForm = () => {
 
     try {
       const response = await CreatePurchase(purchaseData);
+      
       Swal.fire({
         title: "Compra creada",
-        text: `La compra de la factura ${response.Factura} a sido ingresada con el  número de referencia ${response.id}.`,
+        text: `La compra de la factura ${response.Factura} ha sido ingresada con el número de referencia ${response.id}. ¿Qué deseas hacer?`,
         icon: "success",
-        confirmButtonText: "Aceptar",
-      }).then(() => {
-        router.push("./inventory/inventory-movements");
+        showCancelButton: true,
+        confirmButtonText: "Ir a movimientos",
+        cancelButtonText: "Continuar ingresando",
+        reverseButtons: true, // Opcional: invierte el orden de los botones
+        customClass: {
+          confirmButton: "bg-blue-500 hover:bg-blue-600",
+          cancelButton: "bg-orange-500 hover:bg-orange-600",
+        },
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Si el usuario elige "Ir a movimientos"
+          router.push("./list");
+        } else if (result.isDismissed) {
+          // Si el usuario elige "Continuar ingresando", puedes resetear el formulario si lo deseas
+          setSupplierId(null); // Opcional: resetear campos
+          setFactura(""); // Opcional: resetear campos
+          setFormData([]); // Opcional: resetear campos
+          setDateBuy(new Date().toISOString().split("T")[0]); // Opcional: resetear fecha
+        }
       });
     } catch (error) {
       Swal.fire({
@@ -263,7 +300,7 @@ const PurchasesForm = () => {
             <input
               type="number"
               value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
+              onChange={handleQuantityChange}
               min="1"
               className="mt-1 p-2 w-full border rounded-lg bg-gray-50"
             />
@@ -275,7 +312,7 @@ const PurchasesForm = () => {
             <input
               type="number"
               value={cost}
-              onChange={(e) => setCost(Number(e.target.value))}
+              onChange={handleCostChange}
               min="0"
               className="mt-1 p-2 w-full border rounded-lg bg-gray-50"
             />
