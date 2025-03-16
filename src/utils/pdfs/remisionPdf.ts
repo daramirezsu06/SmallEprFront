@@ -1,6 +1,13 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import LogoE7 from "../../../public/LogoE7.png"; // Asegúrate de que la ruta sea correcta
+declare module "jspdf" {
+  interface jsPDF {
+    lastAutoTable: {
+      finalY: number;
+    };
+  }
+}
 
 // Función para convertir la imagen a base64 (si no está ya en ese formato)
 const getBase64Image = (imgUrl:any) => {
@@ -12,7 +19,7 @@ const getBase64Image = (imgUrl:any) => {
       canvas.width = img.width;
       canvas.height = img.height;
       const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0);
+      ctx?.drawImage(img, 0, 0);
       const dataURL = canvas.toDataURL("image/png");
       resolve(dataURL);
     };
@@ -23,7 +30,7 @@ export const generateSalePDF = async (saleData:any) => {
   const doc = new jsPDF();
 
   // Convertir el logo a base64
-  const logoBase64 = await getBase64Image(LogoE7.src); // Usamos .src porque es un import de Next.js
+  const logoBase64 = await getBase64Image(LogoE7.src) as string; // Usamos .src porque es un import de Next.js
 
   // Agregar el logo (ajusta las dimensiones y posición según prefieras)
   doc.addImage(logoBase64, "PNG", 14, 10, 30, 30); // Posición: arriba a la izquierda
@@ -54,7 +61,7 @@ export const generateSalePDF = async (saleData:any) => {
   doc.text(`Tel: ${saleData.customer.tel}`, 14, 78);
 
   // Tabla de ítems
-  const tableData = saleData.sellItems.map((item) => [
+  const tableData = saleData.sellItems.map((item:any) => [
     item.quantity,
     item.product.name,
     parseFloat(item.price).toLocaleString("es-CO"),
