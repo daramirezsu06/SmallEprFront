@@ -47,9 +47,13 @@ const SellForm = () => {
   const getProducts = async () => {
     setLoading(true);
     try {
-      const responseProducts = await GetProducts(4);
-      setProducts(responseProducts);
-    } catch (err: any) {
+      const responseProducts = await GetProducts();
+      setProducts(
+        responseProducts.filter(
+          (p: any) => p.typeProduct.id === 4 || p.typeProduct.id === 5
+        )
+      );
+    } catch (err : any) {
       setError("Error al obtener los productos" + err.message);
     } finally {
       setLoading(false);
