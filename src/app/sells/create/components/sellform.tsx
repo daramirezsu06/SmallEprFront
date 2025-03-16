@@ -3,6 +3,8 @@
 import GetCustomers from "@/api/customers/get-customers";
 import GetProducts from "@/api/products/get-products";
 import CreateSell from "@/api/sells/createSell";
+import { useAuth } from "@/app/context/authContext";
+import { generateSalePDF } from "@/utils/pdfs/remisionPdf";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
@@ -27,13 +29,15 @@ const SellForm = () => {
   const [price, setPrice] = useState<number | null>(null);
   const [productId, setProductId] = useState<number | null>(null);
 
+  const { user } = useAuth();
+
   // Función para obtener los clientes desde la API
   const getCustomers = async () => {
     setLoading(true);
     try {
       const responseCustomers = await GetCustomers();
       setCustomers(responseCustomers); // Actualiza el estado con los clientes
-    } catch (err : any) {
+    } catch (err: any) {
       setError("Error al obtener los clientes" + err.message);
     } finally {
       setLoading(false);
@@ -104,6 +108,9 @@ const SellForm = () => {
           icon: "success",
           confirmButtonText: "Aceptar",
         });
+        if (user?.role === "Administrador") {
+          generateSalePDF(sellResponse);
+        }
         router.push("/sells/list");
       } catch (error) {
         console.log(error);
@@ -120,7 +127,8 @@ const SellForm = () => {
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
       <h1 className="text-2xl font-bold text-center text-gray-800">
-        Formulario de Venta {loading && <p className="text-gray-600">Cargando...</p>}
+        Formulario de Venta{" "}
+        {loading && <p className="text-gray-600">Cargando...</p>}
         {error && <p className="text-red-500 text-sm">{error}</p>}
       </h1>
       <form className="space-y-6 mt-6" onSubmit={handleSubmit}>
@@ -195,7 +203,6 @@ const SellForm = () => {
             className="mt-2 p-3 border rounded-lg bg-gray-50"
           />
         </div>
-        
 
         {/* Botón para agregar el producto */}
         <div className="flex justify-center">
