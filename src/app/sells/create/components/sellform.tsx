@@ -34,7 +34,7 @@ const SellForm = () => {
   } | null>(null);
   const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
   const [showNearbyOnly, setShowNearbyOnly] = useState(false);
-  const DISTANCE_THRESHOLD = 1; 
+  const DISTANCE_THRESHOLD = 0.5; 
 
   const { user } = useAuth();
 
@@ -217,7 +217,7 @@ const SellForm = () => {
                 ? "bg-blue-500 text-white"
                 : "bg-gray-200 text-gray-800"
             }`}>
-            Clientes Cercanos (1 km)
+            Clientes Cercanos (500 m)
           </button>
           <button
             type="button"
