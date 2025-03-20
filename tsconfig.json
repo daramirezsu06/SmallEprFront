@@ -20,7 +20,10 @@
     ],
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    // Añade esto para mejorar la compatibilidad con tipos de Next.js
+    "forceConsistentCasingInFileNames": true,
+    "strictNullChecks": true // Aunque "strict" lo incluye, puede ayudar especificarlo
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
