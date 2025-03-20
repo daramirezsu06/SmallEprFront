@@ -28,15 +28,61 @@ const SellForm = () => {
   const [quantity, setQuantity] = useState<number>(1);
   const [price, setPrice] = useState<number | null>(null);
   const [productId, setProductId] = useState<number | null>(null);
+  const [sellerLocation, setSellerLocation] = useState<{
+    lat: number;
+    lon: number;
+  } | null>(null);
+  const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
+  const [showNearbyOnly, setShowNearbyOnly] = useState(false);
+  const DISTANCE_THRESHOLD = 1; 
 
   const { user } = useAuth();
+
+  const getSellerLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setSellerLocation({ lat: latitude, lon: longitude });
+        },
+        (error) => {
+          setError("No se pudo obtener la ubicación: " + error.message);
+        }
+      );
+    } else {
+      setError("Geolocalización no soportada por este navegador.");
+    }
+  };
+
+  const haversineDistance = (
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ): number => {
+    const toRad = (value: number) => (value * Math.PI) / 180;
+    const R = 6371; // Radio de la Tierra en km
+
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) *
+        Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distancia en km
+  };
 
   // Función para obtener los clientes desde la API
   const getCustomers = async () => {
     setLoading(true);
     try {
       const responseCustomers = await GetCustomers();
-      setCustomers(responseCustomers); // Actualiza el estado con los clientes
+      setCustomers(
+        responseCustomers.sort((a: any, b: any) => a.name.localeCompare(b.name))
+      ); // Actualiza el estado con los clientes
     } catch (err: any) {
       setError("Error al obtener los clientes" + err.message);
     } finally {
@@ -53,7 +99,7 @@ const SellForm = () => {
           (p: any) => p.typeProduct.id === 4 || p.typeProduct.id === 5
         )
       );
-    } catch (err : any) {
+    } catch (err: any) {
       setError("Error al obtener los productos" + err.message);
     } finally {
       setLoading(false);
@@ -61,8 +107,37 @@ const SellForm = () => {
   };
 
   useEffect(() => {
+    if (sellerLocation && customers.length > 0) {
+      const updatedCustomers = customers.map((customer) => {
+        const distance = haversineDistance(
+          sellerLocation.lat,
+          sellerLocation.lon,
+          customer.lat,
+          customer.lon
+        );
+        return { ...customer, distance };
+      });
+
+      if (showNearbyOnly) {
+        setFilteredCustomers(
+          updatedCustomers
+            .filter((customer) => customer.distance <= DISTANCE_THRESHOLD)
+            .sort((a, b) => a.distance - b.distance)
+        );
+      } else {
+        setFilteredCustomers(
+          updatedCustomers.sort((a, b) => a.name.localeCompare(b.name))
+        );
+      }
+    } else {
+      setFilteredCustomers(customers);
+    }
+  }, [sellerLocation, customers, showNearbyOnly]);
+
+  useEffect(() => {
     getCustomers();
     getProducts();
+    getSellerLocation();
   }, []);
 
   const handleCustomerChange = (id: number) => {
@@ -133,6 +208,28 @@ const SellForm = () => {
       </h1>
       <form className="space-y-6 mt-6" onSubmit={handleSubmit}>
         {/* Selección de cliente */}
+        <div className="flex justify-center space-x-4 mb-4">
+          <button
+            type="button"
+            onClick={() => setShowNearbyOnly(true)}
+            className={`p-2 rounded-lg ${
+              showNearbyOnly
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 text-gray-800"
+            }`}>
+            Clientes Cercanos (1 km)
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowNearbyOnly(false)}
+            className={`p-2 rounded-lg ${
+              !showNearbyOnly
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 text-gray-800"
+            }`}>
+            Todos los Clientes
+          </button>
+        </div>
         <div className="flex flex-col">
           <label htmlFor="client" className="text-lg font-medium text-gray-600">
             Cliente
@@ -143,9 +240,12 @@ const SellForm = () => {
             onChange={(e) => handleCustomerChange(Number(e.target.value))}
             required>
             <option value="">Seleccione un cliente</option>
-            {customers.map((customer) => (
+            {filteredCustomers.map((customer) => (
               <option key={customer.id} value={customer.id}>
-                {customer.name}
+                {customer.name}{" "}
+                {customer.distance
+                  ? `(${customer.distance.toFixed(2)} km)`
+                  : ""}
               </option>
             ))}
           </select>
