@@ -9,5 +9,5 @@ export const SellColumns = [
     name: "Vendedor",
     selector: (row: any) => row.seller.name,
   },
-  { name: "Cliente", selector: (row: any) => row.customer.name },
+  { name: "Cliente", selector: (row: any) => row.customer.name }
 ];
