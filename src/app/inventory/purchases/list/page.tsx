@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Table } from "../../../components/Table/tableContainer";
 import GetPurchases from "@/api/purchases/get-purchases";
 import { PurchaseColumns } from "@/utils/TableColumns/purchases";
+import Link from "next/link";
 
 export default function Page() {
   const [purchases, setPurchases] = useState([]);
@@ -23,6 +24,20 @@ export default function Page() {
     fetchPurchases();
   }, []); // Se ejecuta solo al montar la página
 
+  const columns = [
+    ...PurchaseColumns,
+    {
+      name: "ver detalles",
+      selector: (row: any) => (
+        <Link href={`/inventory/purchases/list/${row.id}`}>
+          <button className="text-blue-600 hover:text-blue-800">
+            ver detalles
+          </button>
+        </Link>
+      ),
+    },
+  ];
+
   if (loading) {
     return <div>Cargando inventarios...</div>; // Mensaje mientras se cargan los datos
   }
@@ -30,7 +45,7 @@ export default function Page() {
   return (
     <div>
       <h1>Inventarios</h1>
-      <Table data={purchases} columns={PurchaseColumns} />
+      <Table data={purchases} columns={columns} />
     </div>
   );
 }
