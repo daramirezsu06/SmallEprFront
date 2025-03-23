@@ -5,12 +5,13 @@ import { Table } from "../../components/Table/tableContainer";
 import GetAllPendingSells from "@/api/accountsReceivable/get_all_sells";
 import { PendingSellColumns } from "@/utils/TableColumns/pendingSells";
 
-interface PendingSell {
+export interface PendingSell {
   id: number;
   totalPrice: string;
   status: string;
   pendingAmount: number;
   createDate: string;
+  customer: { name: string };
 }
 
 export default function FormulationList() {

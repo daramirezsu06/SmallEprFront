@@ -1,7 +1,7 @@
 import { axiosApi } from "../api";
 
 
-const CreatePayment = async (paymentData) => {
+const CreatePayment = async (paymentData : any) => {
   try {
     const { data } = await axiosApi.post("payments", paymentData);
     return data;

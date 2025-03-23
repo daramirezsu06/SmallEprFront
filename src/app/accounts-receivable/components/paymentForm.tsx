@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import GetAllPendingSellsByCustomer from "@/api/accountsReceivable/get_all_sells_by_customer";
 import CreatePayment from "@/api/payment/createPayment";
 import Swal from "sweetalert2";

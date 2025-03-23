@@ -1,11 +1,13 @@
-interface PendingSell {
-  id: number;
-  totalPrice: string;
-  status: string;
-  pendingAmount: number;
-  createDate: string;
-  customer: { name: string };
-}
+// interface PendingSell {
+//   id: number;
+//   totalPrice: string;
+//   status: string;
+//   pendingAmount: number;
+//   createDate: string;
+//   customer: { name: string };
+// }
+
+import { PendingSell } from "@/app/accounts-receivable/list/page";
 
 export const PendingSellColumns: {
   name: string;
