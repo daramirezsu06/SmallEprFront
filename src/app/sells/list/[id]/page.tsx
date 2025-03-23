@@ -29,9 +29,6 @@ export default async function SaleDetail({
           <strong>Total:</strong> $
           {parseFloat(sale.totalPrice).toLocaleString()}
         </p>
-        <p>
-          <strong>Estado:</strong> {sale.paid ? "Pagado" : "Pendiente"}
-        </p>
       </div>
 
       {/* Información del Vendedor */}

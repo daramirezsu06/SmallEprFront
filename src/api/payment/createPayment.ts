@@ -1,18 +1,9 @@
 import { axiosApi } from "../api";
-interface sellItem {
-  productId: number;
-  quantity: number;
-  price: number;
-}
-interface sellData {
-  customerId: number;
-  type: string;
-  sellItems: sellItem[];
-}
 
-const CreateSell = async (sellData: sellData) => {
+
+const CreatePayment = async (paymentData) => {
   try {
-    const { data } = await axiosApi.post("/sells", sellData);
+    const { data } = await axiosApi.post("payments", paymentData);
     return data;
   } catch (error: any) {
     // Si el error es de Axios, manejar con error.response, de lo contrario, usar el mensaje genérico
@@ -21,4 +12,4 @@ const CreateSell = async (sellData: sellData) => {
     throw new Error(message); // Usar `new Error` para seguir las buenas prácticas
   }
 };
-export default CreateSell;
+export default CreatePayment;

@@ -34,7 +34,8 @@ const SellForm = () => {
   } | null>(null);
   const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
   const [showNearbyOnly, setShowNearbyOnly] = useState(false);
-  const DISTANCE_THRESHOLD = 0.5; 
+  const [typeOfSell, setTypeOfSell] = useState<string>("");
+  const DISTANCE_THRESHOLD = 0.5;
 
   const { user } = useAuth();
 
@@ -167,11 +168,17 @@ const SellForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (typeOfSell == "" ) {
+      alert(
+        "Por favor ingrese un tipo de venta (contado o crédito)."
+      );
+      return;
+    }
     if (customerId && temsList.length > 0) {
       const saleData = {
         customerId: +customerId,
         sellItems: temsList,
-        paid: true,
+        type: typeOfSell,
       };
 
       try {
@@ -208,28 +215,52 @@ const SellForm = () => {
       </h1>
       <form className="space-y-6 mt-6" onSubmit={handleSubmit}>
         {/* Selección de cliente */}
-        <div className="flex justify-center space-x-4 mb-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <button
             type="button"
             onClick={() => setShowNearbyOnly(true)}
-            className={`p-2 rounded-lg ${
+            className={`flex-1 py-2 rounded-lg transition-colors ${
               showNearbyOnly
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-800"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-700"
             }`}>
-            Clientes Cercanos (500 m)
+            Nearby (500m)
           </button>
           <button
             type="button"
             onClick={() => setShowNearbyOnly(false)}
-            className={`p-2 rounded-lg ${
+            className={`flex-1 py-2 rounded-lg transition-colors ${
               !showNearbyOnly
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-800"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-700"
             }`}>
-            Todos los Clientes
+            All Customers
           </button>
         </div>
+
+        <div className="flex flex-col sm:flex-row gap-4">
+          <button
+            type="button"
+            onClick={() => setTypeOfSell("CASH")}
+            className={`flex-1 py-2 rounded-lg transition-colors ${
+              typeOfSell === "CASH"
+                ? "bg-green-600 text-white"
+                : "bg-gray-200 text-gray-700"
+            }`}>
+            Cash
+          </button>
+          <button
+            type="button"
+            onClick={() => setTypeOfSell("CREDIT")}
+            className={`flex-1 py-2 rounded-lg transition-colors ${
+              typeOfSell === "CREDIT"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-700"
+            }`}>
+            Credit
+          </button>
+        </div>
+
         <div className="flex flex-col">
           <label htmlFor="client" className="text-lg font-medium text-gray-600">
             Cliente
