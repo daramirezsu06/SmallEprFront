@@ -2,12 +2,13 @@
 
 import GetCustomers from "@/api/customers/get-customers";
 import GetProducts from "@/api/products/get-products";
-import CreateSell from "@/api/sells/createSell";
+import CreateSell, { SellData } from "@/api/sells/createSell";
 import { useAuth } from "@/app/context/authContext";
 import { generateSalePDF } from "@/utils/pdfs/remisionPdf";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
+import ModalBill from "./modalBill";
 
 interface ItemsList {
   productId: number;
@@ -35,6 +36,8 @@ const SellForm = () => {
   const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
   const [showNearbyOnly, setShowNearbyOnly] = useState(false);
   const [typeOfSell, setTypeOfSell] = useState<string>("");
+  const [showModalBill, setShowModalBill] = useState(false);
+  const [Bill, setBill] = useState<string>("");
   const DISTANCE_THRESHOLD = 0.5;
 
   const { user } = useAuth();
@@ -168,18 +171,19 @@ const SellForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (typeOfSell == "" ) {
-      alert(
-        "Por favor ingrese un tipo de venta (contado o crédito)."
-      );
+    if (typeOfSell == "") {
+      alert("Por favor ingrese un tipo de venta (contado o crédito).");
       return;
     }
     if (customerId && temsList.length > 0) {
-      const saleData = {
+      const saleData:SellData = {
         customerId: +customerId,
         sellItems: temsList,
         type: typeOfSell,
       };
+      if (Bill !== "") {
+        saleData.bill = Bill;
+      }
 
       try {
         const sellResponse = await CreateSell(saleData);
@@ -372,7 +376,20 @@ const SellForm = () => {
             Realizar Venta
           </button>
         </div>
+        <ModalBill
+          showModal={showModalBill}
+          setShowModal={setShowModalBill}
+          Bill={Bill}
+          setBill={setBill}
+        />
       </form>
+      {user?.role === "Administrador" ? (
+        <button
+          onClick={() => setShowModalBill(true)}
+          className="w-auto p-1 bg-green-500 text-white rounded-lg hover:bg-green-600">
+          Facturas
+        </button>
+      ) : null}
     </div>
   );
 };

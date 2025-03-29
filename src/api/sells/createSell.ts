@@ -4,13 +4,14 @@ interface sellItem {
   quantity: number;
   price: number;
 }
-interface sellData {
+export interface SellData {
   customerId: number;
   type: string;
   sellItems: sellItem[];
+  bill?: string;
 }
 
-const CreateSell = async (sellData: sellData) => {
+const CreateSell = async (sellData: SellData) => {
   try {
     const { data } = await axiosApi.post("/sells", sellData);
     return data;
