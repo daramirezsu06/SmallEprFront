@@ -61,6 +61,7 @@ export default function CreateCustomerPage() {
     name: "",
     address: "",
     customerTypeId: 0,
+    sellerId: 1,
   });
   const [location, setLocation] = useState<{ lat: number; lng: number }>({
     lat: 6.2442, // Medellín por defecto
@@ -163,7 +164,6 @@ export default function CreateCustomerPage() {
       ...formData,
       lat: location.lat,
       lon: location.lng,
-      sellerId: 1,
       neighborhoodId: selectedNeighborhood || undefined, // Incluir neighborhoodId
     };
     console.log(dataToSend); // Para depuración

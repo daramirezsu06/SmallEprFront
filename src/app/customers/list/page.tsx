@@ -61,7 +61,8 @@ export default function CustomerList() {
                 {customers.map((customer) => (
                   <Marker
                     key={customer.id}
-                    position={{ lat: customer.lat, lng: customer.lon }}
+                    position={{ lat: customer.lat, lng: customer.lon }
+                    }
                   />
                 ))}
               </GoogleMap>
